@@ -51,12 +51,33 @@ pub enum Block {
     CodeBlock(Attr, String),
     RawBlock(Format, String),
     BlockQuote(Vec<Block>),
+    OrderedList(ListAttributes, Vec<Vec<Block>>),
     BulletList(Vec<Vec<Block>>),
     DefinitionList(Vec<(Vec<Inline>, Vec<Vec<Block>>)>),
     Header(u64, Attr, Vec<Inline>),
     HorizontalRule,
     Div(Attr, Vec<Block>),
     Null
+}
+
+pub type ListAttributes = (u64, ListNumberStyle, ListNumberDelim);
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum ListNumberStyle {
+    DefaultStyle,
+    Example,
+    Decimal,
+    LowerRoman,
+    UpperRoman,
+    LowerAlpha,
+    UpperAlpha
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum ListNumberDelim {
+    DefaultDelim,
+    Period,
+    OneParen,
+    TwoParens
 }
 
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Inline
@@ -150,12 +171,57 @@ pub fn deserialize(markdown: String) -> Result<Pandoc, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json;
+    use std::collections::BTreeMap;
 
     #[test]
-    fn test_header() {
+    fn test_convert_entry_object() {
+        let mut map = BTreeMap::new();
+        map.insert(String::from("Str"), serde_json::Value::String(String::from("Test")));
+        let expected = serde_json::Value::Object(map);
+
+        let mut object_builder = serde_json::builder::ObjectBuilder::new();
+        object_builder = object_builder.insert(String::from("t"), String::from("Str"));
+        object_builder = object_builder.insert(String::from("c"), String::from("Test"));
+        let object = object_builder.build();
+        let converted = convert_entry(object);
+
+        assert_eq!(converted, expected);
+    }
+
+    #[test]
+    fn test_convert_entry_array() {
+        let arr = vec![serde_json::Value::String(String::from("Test")),
+                           serde_json::Value::String(String::from("string"))];
+        let expected = serde_json::Value::Array(arr);
+
+        let mut array_builder = serde_json::builder::ArrayBuilder::new();
+        array_builder = array_builder.push(String::from("Test"));
+        array_builder = array_builder.push(String::from("string"));
+        let array = array_builder.build();
+        let converted = convert_entry(array);
+
+        assert_eq!(converted, expected);
+    }
+
+    #[test]
+    fn test_deserialize() {
         let markdown = String::from("# Test");
         let pandoc = deserialize(markdown).unwrap();
         assert!(pandoc.meta.un_meta.is_empty());
-        assert_eq!(pandoc.blocks, vec![Block::Header(1, (String::from("test"), vec![], vec![]), vec![Inline::Str(String::from("Test"))])]);
+        assert_eq!(pandoc.blocks, vec![
+            Block::Header(1, (String::from("test"), vec![], vec![]),
+                          vec![Inline::Str(String::from("Test"))])
+        ]);
     }
+
+    #[test]
+    fn test_to_json() {
+        let json = to_json(String::from("# Test")).unwrap();
+        let pandoc = r#"[{"unMeta":{}},[{"t":"Header","c":[1,["test",[],[]],[{"t":"Str","c":"Test"}]]}]]"#;
+        let expected: serde_json::Value = serde_json::from_str(pandoc).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed, expected);
+    }
+
 }
