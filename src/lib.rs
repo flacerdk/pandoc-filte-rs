@@ -43,7 +43,6 @@ pub enum MetaValue {
 }
 
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Block
-// TODO: ordered list, table
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Block {
     Plain(Vec<Inline>),
@@ -56,6 +55,7 @@ pub enum Block {
     DefinitionList(Vec<(Vec<Inline>, Vec<Vec<Block>>)>),
     Header(u64, Attr, Vec<Inline>),
     HorizontalRule,
+    Table(Vec<Inline>, Vec<Alignment>, Vec<f64>, Vec<TableCell>, Vec<Vec<TableCell>>),
     Div(Attr, Vec<Block>),
     Null
 }
@@ -80,6 +80,16 @@ pub enum ListNumberDelim {
     TwoParens
 }
 
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum Alignment {
+    AlignLeft,
+    AlignRight,
+    AlignCenter,
+    AlignDefault
+}
+
+type TableCell = Vec<Block>;
+
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Inline
 // TODO: add cite, note
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -92,6 +102,7 @@ pub enum Inline {
     Subscript(Vec<Inline>),
     SmallCaps(Vec<Inline>),
     Quoted(QuoteType, Vec<Inline>),
+    Cite(Vec<Citation>, Vec<Inline>),
     Code(Attr, String),
     Space,
     SoftBreak,
@@ -115,10 +126,32 @@ pub enum MathType {
     InlineMath
 }
 
-
 pub type Format = String;
 pub type Attr = (String, Vec<String>, Vec<(String, String)>);
 pub type Target = (String, String);
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct Citation {
+    #[serde(rename = "citationId")]
+    citation_id: String,
+    #[serde(rename = "citationPrefix")]
+    citation_prefix: Vec<Inline>,
+    #[serde(rename = "citationSuffix")]
+    citation_suffix: Vec<Inline>,
+    #[serde(rename = "citationmode")]
+    citation_mode: CitationMode,
+    #[serde(rename = "citationNoteNum")]
+    citation_note_num: u64,
+    #[serde(rename = "citationHash")]
+    citation_hash: u64
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum CitationMode {
+    AuthorInText,
+    SuppressAuthor,
+    NormalCitation
+}
 
 pub fn convert_entry(entry: Value) -> Value {
     match entry {
