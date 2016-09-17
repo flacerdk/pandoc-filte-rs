@@ -10,6 +10,26 @@ use std::collections::BTreeMap;
 use std::process::{Command, Stdio};
 use std::io::{Write, Read, Error};
 
+trait Walkable<T> {
+    fn walk<F>(self, f: &F) -> Self
+        where F : Fn(T) -> T;
+}
+
+impl<T> Walkable<T> for T {
+    fn walk<F>(self, f: &F) -> Self
+        where F : Fn(Self) -> Self {
+        f(self)
+    }
+}
+
+impl<T> Walkable<T> for Vec<T>
+    where T : Walkable<T> {
+    fn walk<F>(self, f: &F) -> Self
+        where F : Fn(T) -> T {
+        self.into_iter().map(|i| i.walk(f)).collect()
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Pandoc {
     pub meta: Meta,
@@ -58,6 +78,59 @@ pub enum Block {
     Table(Vec<Inline>, Vec<Alignment>, Vec<f64>, Vec<TableCell>, Vec<Vec<TableCell>>),
     Div(Attr, Vec<Block>),
     Null
+}
+
+impl Walkable<Inline> for Block {
+    fn walk<F>(self, f: &F) -> Self
+        where F : Fn(Inline) -> Inline {
+        match self {
+            Block::Plain(inlines) => Block::Plain(inlines.walk(f)),
+            Block::Para(inlines) => Block::Plain(inlines.walk(f)),
+            Block::BlockQuote(blocks) =>
+                Block::BlockQuote(blocks.walk(f)),
+            Block::OrderedList(list, vecs_blocks) =>
+                Block::OrderedList(list, vecs_blocks.walk(f)),
+            Block::BulletList(vecs_blocks) =>
+                Block::BulletList(vecs_blocks.walk(f)),
+            Block::DefinitionList(inlines_and_blocks) => {
+                Block::DefinitionList(inlines_and_blocks
+                                      .into_iter()
+                                      .map(|(is, vbs)| (is.walk(f), vbs.walk(f)))
+                                      .collect())
+            },
+            Block::Header(i, attr, inlines) =>
+                Block::Header(i, attr, inlines.walk(f)),
+            Block::Table(inlines, alignment, width, headers, rows) => {
+                Block::Table(inlines.walk(f), alignment, width,
+                             headers.walk(f),
+                             rows.walk(f))
+            },
+            Block::Div(attr, blocks) =>
+                Block::Div(attr, blocks.walk(f)),
+            b => b
+        }
+    }
+}
+
+impl Walkable<Inline> for Vec<Block> {
+    fn walk<F>(self, f: &F) -> Self
+        where F : Fn(Inline) -> Inline {
+        self.into_iter().map(|i| i.walk(f)).collect()
+    }
+}
+
+impl Walkable<Inline> for Vec<Vec<Block>> {
+    fn walk<F>(self, f: &F) -> Self
+        where F : Fn(Inline) -> Inline {
+        self.into_iter().map(|i| i.walk(f)).collect()
+    }
+}
+
+impl Walkable<Inline> for Vec<Vec<TableCell>> {
+    fn walk<F>(self, f: &F) -> Self
+        where F : Fn(Inline) -> Inline {
+        self.into_iter().map(|i| i.walk(f)).collect()
+    }
 }
 
 pub type ListAttributes = (u64, ListNumberStyle, ListNumberDelim);
@@ -150,28 +223,6 @@ pub enum CitationMode {
     AuthorInText,
     SuppressAuthor,
     NormalCitation
-}
-
-trait Walkable<T> {
-    fn walk<F>(self, f: F) -> Self
-        where F : Fn(T) -> T;
-}
-
-impl<T> Walkable<T> for T {
-    fn walk<F>(self, f: F) -> Self
-        where F : Fn(Self) -> Self {
-        f(self)
-    }
-}
-
-impl Walkable<Inline> for Block {
-    fn walk<F>(self, f: F) -> Self
-        where F : Fn(Inline) -> Inline {
-        match self {
-            Block::Plain(inlines) => Block::Plain(inlines.into_iter().map(|i| f(i)).collect()),
-            _ => Block::Null
-        }
-    }
 }
 
 pub fn convert_entry(entry: Value) -> Value {
