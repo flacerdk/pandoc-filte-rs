@@ -22,14 +22,6 @@ impl<T> Walkable<T> for T {
     }
 }
 
-impl<T> Walkable<T> for Vec<T>
-    where T : Walkable<T> {
-    fn walk<F>(self, f: &F) -> Self
-        where F : Fn(T) -> T {
-        self.into_iter().map(|i| i.walk(f)).collect()
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Pandoc {
     pub meta: Meta,
@@ -112,21 +104,8 @@ impl Walkable<Inline> for Block {
     }
 }
 
-impl Walkable<Inline> for Vec<Block> {
-    fn walk<F>(self, f: &F) -> Self
-        where F : Fn(Inline) -> Inline {
-        self.into_iter().map(|i| i.walk(f)).collect()
-    }
-}
-
-impl Walkable<Inline> for Vec<Vec<Block>> {
-    fn walk<F>(self, f: &F) -> Self
-        where F : Fn(Inline) -> Inline {
-        self.into_iter().map(|i| i.walk(f)).collect()
-    }
-}
-
-impl Walkable<Inline> for Vec<Vec<TableCell>> {
+impl<T> Walkable<Inline> for Vec<T>
+    where T : Walkable<Inline> {
     fn walk<F>(self, f: &F) -> Self
         where F : Fn(Inline) -> Inline {
         self.into_iter().map(|i| i.walk(f)).collect()
