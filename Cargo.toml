@@ -1,0 +1,9 @@
+[package]
+name = "pandoc_filters"
+version = "0.1.0"
+authors = ["Felipe <fegolac@gmail.com>"]
+
+[dependencies]
+serde = "0.8.8"
+serde_json = "0.8.2"
+serde_macros = "0.8.8"

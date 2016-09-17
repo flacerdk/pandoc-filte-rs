@@ -1,7 +1,7 @@
 extern crate serde;
 extern crate serde_json;
 extern crate pandoc_filters;
-use pandoc_filters::deserialize;
+use pandoc_filters::json::deserialize;
 
 use std::env;
 use std::fs::File;
