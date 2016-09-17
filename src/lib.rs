@@ -91,7 +91,6 @@ pub enum Alignment {
 type TableCell = Vec<Block>;
 
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Inline
-// TODO: add cite, note
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Inline {
     Str(String),
@@ -153,6 +152,28 @@ pub enum CitationMode {
     NormalCitation
 }
 
+trait Walkable<T> {
+    fn walk<F>(self, f: F) -> Self
+        where F : Fn(T) -> T;
+}
+
+impl<T> Walkable<T> for T {
+    fn walk<F>(self, f: F) -> Self
+        where F : Fn(Self) -> Self {
+        f(self)
+    }
+}
+
+impl Walkable<Inline> for Block {
+    fn walk<F>(self, f: F) -> Self
+        where F : Fn(Inline) -> Inline {
+        match self {
+            Block::Plain(inlines) => Block::Plain(inlines.into_iter().map(|i| f(i)).collect()),
+            _ => Block::Null
+        }
+    }
+}
+
 pub fn convert_entry(entry: Value) -> Value {
     match entry {
         Value::Object(obj) => {
@@ -204,6 +225,7 @@ pub fn deserialize(markdown: String) -> Result<Pandoc, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use Walkable;
     use serde_json;
     use std::collections::BTreeMap;
 
@@ -255,6 +277,14 @@ mod tests {
         let expected: serde_json::Value = serde_json::from_str(pandoc).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed, expected);
+    }
+
+    #[test]
+    fn test_walk_inline() {
+        let inline_str = Inline::Str(String::from("a"));
+        let emph = inline_str.walk(|s| Inline::Emph(vec![s]));
+        let expected = Inline::Emph(vec![Inline::Str(String::from("a"))]);
+        assert_eq!(emph, expected);
     }
 
 }
