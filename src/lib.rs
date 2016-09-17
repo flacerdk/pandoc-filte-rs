@@ -104,10 +104,10 @@ impl Walkable<Inline> for Block {
     }
 }
 
-impl<T, U> Walkable<U> for Vec<T>
-    where T : Walkable<U> {
+impl<T> Walkable<Inline> for Vec<T>
+    where T : Walkable<Inline> {
     fn walk<F>(self, f: &F) -> Self
-        where F : Fn(U) -> U {
+        where F : Fn(Inline) -> Inline {
         self.into_iter().map(|i| i.walk(f)).collect()
     }
 }
