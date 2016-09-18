@@ -112,17 +112,17 @@ pub type Target = (String, String);
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Citation {
     #[serde(rename = "citationId")]
-    citation_id: String,
+    pub citation_id: String,
     #[serde(rename = "citationPrefix")]
-    citation_prefix: Vec<Inline>,
+    pub citation_prefix: Vec<Inline>,
     #[serde(rename = "citationSuffix")]
-    citation_suffix: Vec<Inline>,
+    pub citation_suffix: Vec<Inline>,
     #[serde(rename = "citationmode")]
-    citation_mode: CitationMode,
+    pub citation_mode: CitationMode,
     #[serde(rename = "citationNoteNum")]
-    citation_note_num: u64,
+    pub citation_note_num: u64,
     #[serde(rename = "citationHash")]
-    citation_hash: u64
+    pub citation_hash: u64
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

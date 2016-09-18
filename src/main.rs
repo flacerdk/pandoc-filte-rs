@@ -1,7 +1,8 @@
 extern crate serde;
 extern crate serde_json;
 extern crate pandoc_filters;
-use pandoc_filters::json::deserialize;
+use pandoc_filters::json::filter;
+use pandoc_filters::types::Inline;
 
 use std::env;
 use std::fs::File;
@@ -18,9 +19,15 @@ fn main() {
         panic!("Please provide a file to read");
     };
 
-    let mut markdown = String::new();
-    fh.read_to_string(&mut markdown).unwrap();
-    let pandoc = deserialize(markdown).unwrap();
-    println!("{:?}", pandoc);
+    let mut json = String::new();
+    fh.read_to_string(&mut json).unwrap();
+    let new_json = filter(json, &f).unwrap();
+    println!("{}", new_json);
 }
 
+fn f(inline: Inline) -> Inline {
+    match inline {
+        Inline::Str(s) => Inline::Emph(vec![Inline::Str(s)]),
+        e => e
+    }
+}

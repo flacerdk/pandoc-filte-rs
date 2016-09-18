@@ -4,6 +4,6 @@
 extern crate serde;
 extern crate serde_json;
 
-mod types;
+pub mod types;
 mod walk;
 pub mod json;

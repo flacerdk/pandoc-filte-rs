@@ -5,6 +5,7 @@ use std::io::{Write, Read, Error};
 use std::collections::BTreeMap;
 
 use types::Pandoc;
+use walk::Walkable;
 
 impl Pandoc {
     pub fn new_from_json(meta: Value, blocks: Value) -> Self {
@@ -62,6 +63,20 @@ pub fn deserialize(markdown: String) -> Result<Pandoc, String> {
     }
     let pandoc = Pandoc::new_from_json(arr[0].clone(), arr[1].clone());
     Ok(pandoc)
+}
+
+pub fn filter<F, U: Walkable<U>>(json: String, f: &F) -> Result<String, String>
+    where F: Fn(U) -> U, Pandoc: Walkable<U> {
+    let value: Value = try!(serde_json::from_str(&json).map_err(|e| e.to_string()));
+    let arr: &Vec<Value> = try!(value.as_array().ok_or("Not an array"));
+
+    if arr.len() != 2 {
+        return Err(String::from("Not valid Pandoc"))
+    }
+    let pandoc = Pandoc::new_from_json(arr[0].clone(), arr[1].clone());
+    let walked = pandoc.walk(f);
+    let new_json = try!(serde_json::ser::to_string(&walked).map_err(|e| e.to_string()));
+    Ok(new_json)
 }
 
 #[cfg(test)]
