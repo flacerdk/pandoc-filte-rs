@@ -10,27 +10,25 @@ use walk::Walkable;
 impl Pandoc {
     pub fn new_from_json(meta: Value, blocks: Value) -> Self {
         let converted_meta = serde_json::from_value(meta).unwrap();
-        let converted_blocks = serde_json::from_value(convert_entry(blocks)).unwrap();
-        Pandoc { meta: converted_meta,
-                 blocks: converted_blocks
-        }
+        let converted_blocks = serde_json::from_value(from_pandoc(blocks)).unwrap();
+        Pandoc(converted_meta, converted_blocks)
     }
 }
 
-pub fn convert_entry(entry: Value) -> Value {
+pub fn from_pandoc(entry: Value) -> Value {
     match entry {
         Value::Object(obj) => {
             let mut new_entry = BTreeMap::new();
             let t = String::from(obj.get("t").unwrap().as_str().unwrap());
             let c = obj.get("c").unwrap().clone();
-            let new_c = convert_entry(c);
+            let new_c = from_pandoc(c);
             new_entry.insert(t, new_c);
             Value::Object(new_entry)
         },
         Value::Array(arr) => {
             let mut array = Vec::new();
             for item in arr {
-                array.push(convert_entry(item));
+                array.push(from_pandoc(item));
             }
             Value::Array(array)
         },
@@ -38,7 +36,34 @@ pub fn convert_entry(entry: Value) -> Value {
     }
 }
 
-pub fn to_json(markdown: String) -> Result<String, Error> {
+pub fn to_pandoc(entry: Value) -> Value {
+    match entry {
+        Value::Object(obj) => {
+            let mut new_entry = BTreeMap::new();
+            if !obj.is_empty() {
+                let (key, value) = obj.into_iter().next().unwrap();
+                if key == "unMeta" {
+                    new_entry.insert(String::from("unMeta"), value);
+                } else {
+                    let new_c = to_pandoc(value);
+                    new_entry.insert(String::from("c"), new_c);
+                    new_entry.insert(String::from("t"), Value::String(key));
+                }
+            }
+            Value::Object(new_entry)
+        },
+        Value::Array(arr) => {
+            let mut array = Vec::new();
+            for item in arr {
+                array.push(to_pandoc(item));
+            }
+            Value::Array(array)
+        },
+        _ => entry
+    }
+}
+
+pub fn markdown_to_json(markdown: String) -> Result<String, Error> {
     let process = try!(
         Command::new("pandoc")
             .args(&["-t", "json", "--mathjax"])
@@ -53,18 +78,6 @@ pub fn to_json(markdown: String) -> Result<String, Error> {
     Ok(s)
 }
 
-pub fn deserialize(markdown: String) -> Result<Pandoc, String> {
-    let json = try!(to_json(markdown).map_err(|e| e.to_string()));
-    let value: Value = try!(serde_json::from_str(&json).map_err(|e| e.to_string()));
-    let arr: &Vec<Value> = try!(value.as_array().ok_or("Not an array"));
-
-    if arr.len() != 2 {
-        return Err(String::from("Not valid Pandoc"))
-    }
-    let pandoc = Pandoc::new_from_json(arr[0].clone(), arr[1].clone());
-    Ok(pandoc)
-}
-
 pub fn filter<F, U: Walkable<U>>(json: String, f: &F) -> Result<String, String>
     where F: Fn(U) -> U, Pandoc: Walkable<U> {
     let value: Value = try!(serde_json::from_str(&json).map_err(|e| e.to_string()));
@@ -74,7 +87,8 @@ pub fn filter<F, U: Walkable<U>>(json: String, f: &F) -> Result<String, String>
         return Err(String::from("Not valid Pandoc"))
     }
     let pandoc = Pandoc::new_from_json(arr[0].clone(), arr[1].clone());
-    let walked = pandoc.walk(f);
+    let walked = to_pandoc(serde_json::to_value(&pandoc.walk(f)));
+
     let new_json = try!(serde_json::ser::to_string(&walked).map_err(|e| e.to_string()));
     Ok(new_json)
 }
@@ -96,7 +110,7 @@ mod tests {
         object_builder = object_builder.insert(String::from("t"), String::from("Str"));
         object_builder = object_builder.insert(String::from("c"), String::from("Test"));
         let object = object_builder.build();
-        let converted = convert_entry(object);
+        let converted = from_pandoc(object);
 
         assert_eq!(converted, expected);
     }
@@ -111,7 +125,7 @@ mod tests {
         array_builder = array_builder.push(String::from("Test"));
         array_builder = array_builder.push(String::from("string"));
         let array = array_builder.build();
-        let converted = convert_entry(array);
+        let converted = from_pandoc(array);
 
         assert_eq!(converted, expected);
     }
@@ -129,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_to_json() {
-        let json = to_json(String::from("# Test")).unwrap();
+        let json = markdown_to_json(String::from("# Test")).unwrap();
         let pandoc = r#"[{"unMeta":{}},[{"t":"Header","c":[1,["test",[],[]],[{"t":"Str","c":"Test"}]]}]]"#;
         let expected: serde_json::Value = serde_json::from_str(pandoc).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();

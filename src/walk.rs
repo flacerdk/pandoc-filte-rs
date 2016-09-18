@@ -32,18 +32,14 @@ impl Walkable<Pandoc> for Pandoc {
 impl Walkable<Block> for Pandoc {
     fn walk<F>(self, f: &F) -> Self
         where F : Fn(Block) -> Block {
-        Pandoc { meta: self.meta.walk(f),
-                 blocks: self.blocks.walk(f)
-        }
+        Pandoc(self.0.walk(f), self.1.walk(f))
     }
 }
 
 impl Walkable<Inline> for Pandoc {
     fn walk<F>(self, f: &F) -> Self
         where F : Fn(Inline) -> Inline {
-        Pandoc { meta: self.meta.walk(f),
-                 blocks: self.blocks.walk(f)
-        }
+        Pandoc(self.0.walk(f), self.1.walk(f))
     }
 }
 

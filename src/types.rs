@@ -1,10 +1,7 @@
 use std::collections::BTreeMap;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Pandoc {
-    pub meta: Meta,
-    pub blocks: Vec<Block>
-}
+pub struct Pandoc(pub Meta, pub Vec<Block>);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Meta {
