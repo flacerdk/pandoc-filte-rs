@@ -70,7 +70,7 @@ impl Walkable<MetaValue> for MetaValue {
         match self {
             MetaValue::MetaMap(map) => MetaValue::MetaMap(map.walk(f)),
             MetaValue::MetaList(values) => MetaValue::MetaList(values.walk(f)),
-            e => e
+            e => f(e)
         }
     }
 }
@@ -123,7 +123,7 @@ impl Walkable<Block> for Block {
                              rows.walk(f))
             },
             Block::Div(attr, blocks) => Block::Div(attr, blocks.walk(f)),
-            e => e
+            e => f(e)
         }
     }
 }
