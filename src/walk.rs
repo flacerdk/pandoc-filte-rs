@@ -133,7 +133,7 @@ impl Walkable<Inline> for Block {
         where F : Fn(Inline) -> Inline {
         match self {
             Block::Plain(inlines) => Block::Plain(inlines.walk(f)),
-            Block::Para(inlines) => Block::Plain(inlines.walk(f)),
+            Block::Para(inlines) => Block::Para(inlines.walk(f)),
             Block::BlockQuote(blocks) =>
                 Block::BlockQuote(blocks.walk(f)),
             Block::OrderedList(list, vecs_blocks) =>
