@@ -177,17 +177,62 @@ impl Serialize for Inline {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Deserialize)]
 pub enum QuoteType {
     SingleQuote,
     DoubleQuote
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+impl Serialize for QuoteType {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+        where S: Serializer {
+        match *self {
+            QuoteType::SingleQuote => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "SingleQuote"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            QuoteType::DoubleQuote => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "DoubleQuote"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Deserialize)]
 pub enum MathType {
     DisplayMath,
     InlineMath
 }
+
+impl Serialize for MathType {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+        where S: Serializer {
+        match *self {
+            MathType::DisplayMath => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "DisplayMath"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            MathType::InlineMath => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "InlineMath"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+        }
+    }
+}
+
 
 pub type Format = String;
 pub type Attr = (String, Vec<String>, Vec<(String, String)>);

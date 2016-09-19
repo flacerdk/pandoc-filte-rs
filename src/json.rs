@@ -89,7 +89,7 @@ pub fn filter<F, U: Walkable<U>>(json: String, f: &F) -> Result<String, String>
     let pandoc = Pandoc::new_from_json(arr[0].clone(), arr[1].clone());
     let walked = to_pandoc(serde_json::to_value(&pandoc.walk(f)));
 
-    let new_json = try!(serde_json::ser::to_string(&walked).map_err(|e| e.to_string()));
+    let new_json = try!(serde_json::ser::to_string_pretty(&walked).map_err(|e| e.to_string()));
     Ok(new_json)
 }
 
