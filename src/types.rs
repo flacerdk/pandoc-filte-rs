@@ -39,7 +39,7 @@ pub enum Block {
 }
 
 pub type ListAttributes = (u64, ListNumberStyle, ListNumberDelim);
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Deserialize)]
 pub enum ListNumberStyle {
     DefaultStyle,
     Example,
@@ -50,7 +50,64 @@ pub enum ListNumberStyle {
     UpperAlpha
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+impl Serialize for ListNumberStyle {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+        where S: Serializer {
+        match *self {
+            ListNumberStyle::DefaultStyle => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "DefaultStyle"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberStyle::Example => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "Example"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberStyle::Decimal => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "Decimal"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberStyle::LowerRoman => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "LowerRoman"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberStyle::UpperRoman => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "UpperRoman"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberStyle::LowerAlpha => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "LowerAlpha"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberStyle::UpperAlpha => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "UpperAlpha"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Deserialize)]
 pub enum ListNumberDelim {
     DefaultDelim,
     Period,
@@ -58,12 +115,84 @@ pub enum ListNumberDelim {
     TwoParens
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+impl Serialize for ListNumberDelim {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+        where S: Serializer {
+        match *self {
+            ListNumberDelim::DefaultDelim => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "DefaultDelim"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberDelim::Period => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "Period"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberDelim::OneParen => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "OneParen"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            ListNumberDelim::TwoParens => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "TwoParens"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Deserialize)]
 pub enum Alignment {
     AlignLeft,
     AlignRight,
     AlignCenter,
     AlignDefault
+}
+
+impl Serialize for Alignment {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+        where S: Serializer {
+        match *self {
+            Alignment::AlignLeft => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "AlignLeft"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            Alignment::AlignRight => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "AlignRight"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            Alignment::AlignCenter => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "AlignCenter"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+            Alignment::AlignDefault => {
+                let mut state = try!(serializer.serialize_map(Some(1)));
+                try!(serializer.serialize_map_key(&mut state, "AlignDefault"));
+                let v: Vec<String> = Vec::new();
+                try!(serializer.serialize_map_value(&mut state, v));
+                serializer.serialize_map_end(state)
+            },
+        }
+    }
 }
 
 type TableCell = Vec<Block>;
