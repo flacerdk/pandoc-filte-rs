@@ -24,9 +24,8 @@ writing filters provides just that.
 
 ## Issues
 
-The JSON serializer does not work perfectly at the moment. In particular, it
-does not serialize tuple structs (such as `Attr`) correctly. This is due to
-Serde's automatically generated serializer, which for example serializes
-X("a","b") as ["a", "b"], whereas Pandoc wants something of the form [{"a": []},
-{"b": []}]. Changing this seems to require implementing custom serializers,
-which I haven't gotten around to yet.
+`types.rs` has a lot of custom serializer code that can probably be
+simplified. I wrote this code because Serde's automatically generated serializer
+isn't fully compatible with Pandoc: for example, it serializes `X("a","b")` as
+`["a", "b"]`, whereas Pandoc wants something of the form `[{"a": []}, {"b":
+[]}]`.
