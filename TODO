@@ -1,2 +1,1 @@
-- Implement Serialize for Inline. The format used by codegen is incompatible with Pandoc.
 - Write exhaustive tests.
