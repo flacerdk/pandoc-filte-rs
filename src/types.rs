@@ -39,329 +39,137 @@ pub enum Block {
 }
 
 pub type ListAttributes = (u64, ListNumberStyle, ListNumberDelim);
-#[derive(PartialEq, Debug, Deserialize)]
-pub enum ListNumberStyle {
-    DefaultStyle,
-    Example,
-    Decimal,
-    LowerRoman,
-    UpperRoman,
-    LowerAlpha,
-    UpperAlpha
-}
 
-impl Serialize for ListNumberStyle {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: Serializer {
-        match *self {
-            ListNumberStyle::DefaultStyle => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "DefaultStyle"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberStyle::Example => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "Example"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberStyle::Decimal => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "Decimal"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberStyle::LowerRoman => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "LowerRoman"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberStyle::UpperRoman => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "UpperRoman"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberStyle::LowerAlpha => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "LowerAlpha"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberStyle::UpperAlpha => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "UpperAlpha"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
+macro_rules! serialize_enum {
+    ($name:ident,
+     units = { $( $unit:ident ),* },
+     newtypes = { $( $newtype:ident[$val_ident:ident, $newtype_val:ty] ),* },
+     tuples = { $( $tuple:ident[$( $el_ident:ident=$tuple_el:ty ),*] ),* }) => {
+        #[derive(PartialEq, Debug, Deserialize)]
+        pub enum $name {
+            $( $unit, )*
+            $( $newtype($newtype_val), )*
+            $( $tuple($( $tuple_el ),*), )*
+        }
+
+        impl Serialize for $name {
+            fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+                where S: Serializer {
+                match *self {
+                    $(
+                        $name::$unit => {
+                            let mut state = try!(serializer.serialize_map(Some(1)));
+                            try!(serializer.serialize_map_key(&mut state, stringify!($unit)));
+                            let v: Vec<String> = Vec::new();
+                            try!(serializer.serialize_map_value(&mut state, v));
+                            serializer.serialize_map_end(state)
+                        },
+                    )*
+                    $(
+                        $name::$newtype(ref $val_ident) =>
+                            serializer.serialize_newtype_variant(stringify!($name), 0,
+                                                                 stringify!($newtype), $val_ident),
+                    )*
+                    $(
+                        $name::$tuple( $( ref $el_ident ),* ) => {
+                            let mut state = try!(serializer.serialize_tuple_variant(stringify!($name), 0,
+                                                                                    stringify!($tuple), 2));
+                            $(
+                                try!(serializer.serialize_tuple_variant_elt(&mut state, $el_ident));
+                            )*
+                                serializer.serialize_tuple_variant_end(state)
+                        },
+                    )*
+                }
+            }
         }
     }
 }
 
-#[derive(PartialEq, Debug, Deserialize)]
-pub enum ListNumberDelim {
-    DefaultDelim,
-    Period,
-    OneParen,
-    TwoParens
-}
+serialize_enum!(
+    ListNumberStyle,
+    units = {
+        DefaultStyle,
+        Example,
+        Decimal,
+        LowerRoman,
+        UpperRoman,
+        LowerAlpha,
+        UpperAlpha
+    },
+    newtypes = {}, tuples = {}
+);
 
-impl Serialize for ListNumberDelim {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: Serializer {
-        match *self {
-            ListNumberDelim::DefaultDelim => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "DefaultDelim"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberDelim::Period => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "Period"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberDelim::OneParen => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "OneParen"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            ListNumberDelim::TwoParens => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "TwoParens"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-        }
-    }
-}
+serialize_enum!(
+    ListNumberDelim,
+    units = {
+        DefaultDelim,
+        Period,
+        OneParen,
+        TwoParens
+    },
+    newtypes = {}, tuples = {}
+);
 
-#[derive(PartialEq, Debug, Deserialize)]
-pub enum Alignment {
-    AlignLeft,
-    AlignRight,
-    AlignCenter,
-    AlignDefault
-}
-
-impl Serialize for Alignment {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: Serializer {
-        match *self {
-            Alignment::AlignLeft => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "AlignLeft"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            Alignment::AlignRight => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "AlignRight"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            Alignment::AlignCenter => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "AlignCenter"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            Alignment::AlignDefault => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "AlignDefault"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-        }
-    }
-}
+serialize_enum!(
+    Alignment,
+    units = {
+        AlignLeft,
+        AlignRight,
+        AlignCenter,
+        AlignDefault
+    },
+    newtypes = {}, tuples = {}
+);
 
 type TableCell = Vec<Block>;
 
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Inline
-#[derive(PartialEq, Debug, Deserialize)]
-pub enum Inline {
-    Str(String),
-    Emph(Vec<Inline>),
-    Strong(Vec<Inline>),
-    Strikeout(Vec<Inline>),
-    Superscript(Vec<Inline>),
-    Subscript(Vec<Inline>),
-    SmallCaps(Vec<Inline>),
-    Quoted(QuoteType, Vec<Inline>),
-    Cite(Vec<Citation>, Vec<Inline>),
-    Code(Attr, String),
-    Space,
-    SoftBreak,
-    LineBreak,
-    Math(MathType, String),
-    RawInline(Format, String),
-    Link(Attr, Vec<Inline>, Target),
-    Image(Attr, Vec<Inline>, Target),
-    Span(Attr, Vec<Inline>)
-}
-
-impl Serialize for Inline {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: Serializer {
-        match *self {
-            Inline::Str(ref s) => serializer.serialize_newtype_variant("Inline", 0, "Str", s),
-            Inline::Emph(ref is) => serializer.serialize_newtype_variant("Inline", 1, "Emph", is),
-            Inline::Strong(ref is) => serializer.serialize_newtype_variant("Inline", 2, "Strong", is),
-            Inline::Strikeout(ref is) => serializer.serialize_newtype_variant("Inline", 3, "Strikeout", is),
-            Inline::Superscript(ref is) => serializer.serialize_newtype_variant("Inline", 4, "Superscript", is),
-            Inline::Subscript(ref is) => serializer.serialize_newtype_variant("Inline", 5, "Subscript", is),
-            Inline::SmallCaps(ref is) => serializer.serialize_newtype_variant("Inline", 6, "SmallCaps", is),
-            Inline::Quoted(ref quote_type, ref is) => {
-                let mut state = try!(serializer.serialize_tuple_variant("Inline", 7, "Quoted", 2));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, quote_type));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, is));
-                serializer.serialize_tuple_variant_end(state)
-            },
-            Inline::Cite(ref cites, ref is) => {
-                let mut state = try!(serializer.serialize_tuple_variant("Inline", 8, "Cite", 2));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, cites));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, is));
-                serializer.serialize_tuple_variant_end(state)
-            },
-            Inline::Code(ref attr, ref s) => {
-                let mut state = try!(serializer.serialize_tuple_variant("Inline", 9, "Code", 2));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, attr));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, s));
-                serializer.serialize_tuple_variant_end(state)
-            },
-            Inline::Space => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "Space"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            Inline::SoftBreak => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "SoftBreak"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            Inline::LineBreak => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "LineBreak"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            Inline::Math(ref math_type, ref s) => {
-                let mut state = try!(serializer.serialize_tuple_variant("Inline", 13, "Math", 2));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, math_type));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, s));
-                serializer.serialize_tuple_variant_end(state)
-            },
-            Inline::RawInline(ref format, ref s) => {
-                let mut state = try!(serializer.serialize_tuple_variant("Inline", 14, "RawInline", 2));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, format));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, s));
-                serializer.serialize_tuple_variant_end(state)
-            },
-            Inline::Link(ref attr, ref is, ref target) => {
-                let mut state = try!(serializer.serialize_tuple_variant("Inline", 15, "Link", 3));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, attr));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, is));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, target));
-                serializer.serialize_tuple_variant_end(state)
-            },
-            Inline::Image(ref attr, ref is, ref target) => {
-                let mut state = try!(serializer.serialize_tuple_variant("Inline", 16, "Image", 3));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, attr));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, is));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, target));
-                serializer.serialize_tuple_variant_end(state)
-            },
-            Inline::Span(ref attr, ref is) => {
-                let mut state = try!(serializer.serialize_tuple_variant("Inline", 17, "Span", 2));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, attr));
-                try!(serializer.serialize_tuple_variant_elt(&mut state, is));
-                serializer.serialize_tuple_variant_end(state)
-            },
-        }
+serialize_enum!(
+    Inline,
+    units = {
+        Space,
+        SoftBreak,
+        LineBreak
+    },
+    newtypes = {
+        Str[s, String],
+        Emph[v, Vec<Inline>],
+        Strong[v, Vec<Inline>],
+        Strikeout[v, Vec<Inline>],
+        Superscript[v, Vec<Inline>],
+        Subscript[v, Vec<Inline>],
+        SmallCaps[v, Vec<Inline>]
+    },
+    tuples = {
+        Quoted[q = QuoteType, v = Vec<Inline>],
+        Cite[c = Vec<Citation>, v = Vec<Inline>],
+        Code[a=Attr, s=String],
+        Math[t=MathType, s=String],
+        RawInline[f=Format, s=String],
+        Link[a=Attr, v=Vec<Inline>, t=Target],
+        Image[a=Attr, v=Vec<Inline>, t=Target],
+        Span[a=Attr, v=Vec<Inline>]
     }
-}
+);
 
-#[derive(PartialEq, Debug, Deserialize)]
-pub enum QuoteType {
-    SingleQuote,
-    DoubleQuote
-}
+serialize_enum!(
+    QuoteType,
+    units = {
+        SingleQuote,
+        DoubleQuote
+    },
+    newtypes = {}, tuples = {}
+);
 
-impl Serialize for QuoteType {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: Serializer {
-        match *self {
-            QuoteType::SingleQuote => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "SingleQuote"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            QuoteType::DoubleQuote => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "DoubleQuote"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-        }
-    }
-}
-
-#[derive(PartialEq, Debug, Deserialize)]
-pub enum MathType {
-    DisplayMath,
-    InlineMath
-}
-
-impl Serialize for MathType {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: Serializer {
-        match *self {
-            MathType::DisplayMath => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "DisplayMath"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-            MathType::InlineMath => {
-                let mut state = try!(serializer.serialize_map(Some(1)));
-                try!(serializer.serialize_map_key(&mut state, "InlineMath"));
-                let v: Vec<String> = Vec::new();
-                try!(serializer.serialize_map_value(&mut state, v));
-                serializer.serialize_map_end(state)
-            },
-        }
-    }
-}
-
+serialize_enum!(
+    MathType,
+    units = {
+        DisplayMath,
+        InlineMath
+    },
+    newtypes = {}, tuples = {}
+);
 
 pub type Format = String;
 pub type Attr = (String, Vec<String>, Vec<(String, String)>);
