@@ -220,27 +220,65 @@ mod tests {
         Block::Plain(vec![inline_base_val()])
     }
 
+    fn attr_base_val() -> Attr {
+        (String::from("test"), vec![String::from("test")],
+         vec![(String::from("test"), String::from("test"))])
+    }
+
+    fn list_attributes_base_val() -> ListAttributes {
+        (0, ListNumberStyle::DefaultStyle, ListNumberDelim::DefaultDelim)
+    }
+
     #[test]
     fn serialize_meta_value() {
         let mut map = BTreeMap::new();
         map.insert(String::from("test"), meta_base_val());
-        let meta_map = MetaValue::MetaMap(map);
-        assert_eq!(to_string(&meta_map).unwrap(), r#"{"MetaMap":{"test":{"MetaString":"test"}}}"#);
+        assert_eq!(to_string(&MetaValue::MetaMap(map)).unwrap(),
+                   r#"{"MetaMap":{"test":{"MetaString":"test"}}}"#);
+        assert_eq!(to_string(&MetaValue::MetaList(vec![meta_base_val()])).unwrap(),
+                   r#"{"MetaList":[{"MetaString":"test"}]}"#);
+        assert_eq!(to_string(&MetaValue::MetaBool(true)).unwrap(),
+                   r#"{"MetaBool":true}"#);
+        assert_eq!(to_string(&meta_base_val()).unwrap(),
+                   r#"{"MetaString":"test"}"#);
+        assert_eq!(to_string(&MetaValue::MetaInlines(vec![inline_base_val()])).unwrap(),
+                   r#"{"MetaInlines":[{"Str":"test"}]}"#);
+        assert_eq!(to_string(&MetaValue::MetaBlocks(vec![block_base_val()])).unwrap(),
+                   r#"{"MetaBlocks":[{"Plain":[{"Str":"test"}]}]}"#);
+    }
 
-        let meta_list = MetaValue::MetaList(vec![meta_base_val()]);
-        assert_eq!(to_string(&meta_list).unwrap(), r#"{"MetaList":[{"MetaString":"test"}]}"#);
-
-        let meta_bool = MetaValue::MetaBool(true);
-        assert_eq!(to_string(&meta_bool).unwrap(), r#"{"MetaBool":true}"#);
-
-        let meta_string = meta_base_val();
-        assert_eq!(to_string(&meta_string).unwrap(), r#"{"MetaString":"test"}"#);
-
-        let meta_inlines = MetaValue::MetaInlines(vec![inline_base_val()]);
-        assert_eq!(to_string(&meta_inlines).unwrap(), r#"{"MetaInlines":[{"Str":"test"}]}"#);
-
-        let meta_blocks = MetaValue::MetaBlocks(vec![block_base_val()]);
-        assert_eq!(to_string(&meta_blocks).unwrap(), r#"{"MetaBlocks":[{"Plain":[{"Str":"test"}]}]}"#);
+    #[test]
+    fn serialize_block() {
+        assert_eq!(to_string(&block_base_val()).unwrap(),
+                   r#"{"Plain":[{"Str":"test"}]}"#);
+        assert_eq!(to_string(&Block::Para(vec![inline_base_val()])).unwrap(),
+                   r#"{"Para":[{"Str":"test"}]}"#);
+        assert_eq!(to_string(&Block::CodeBlock(attr_base_val(), String::from("test"))).unwrap(),
+                   r#"{"CodeBlock":[["test",["test"],[["test","test"]]],"test"]}"#);
+        assert_eq!(to_string(&Block::RawBlock(String::from("test"), String::from("test"))).unwrap(),
+                   r#"{"RawBlock":["test","test"]}"#);
+        assert_eq!(to_string(&Block::BlockQuote(vec![block_base_val()])).unwrap(),
+                   r#"{"BlockQuote":[{"Plain":[{"Str":"test"}]}]}"#);
+        assert_eq!(to_string(&Block::OrderedList(list_attributes_base_val(),
+                                                 vec![vec![block_base_val()]])).unwrap(),
+                   r#"{"OrderedList":[[0,{"DefaultStyle":[]},{"DefaultDelim":[]}],[[{"Plain":[{"Str":"test"}]}]]]}"#);
+        assert_eq!(to_string(&Block::BulletList(vec![vec![block_base_val()]])).unwrap(),
+                   r#"{"BulletList":[[{"Plain":[{"Str":"test"}]}]]}"#);
+        assert_eq!(to_string(&Block::DefinitionList(vec![(vec![inline_base_val()],
+                                                          vec![vec![block_base_val()]])])).unwrap(),
+                   r#"{"DefinitionList":[[[{"Str":"test"}],[[{"Plain":[{"Str":"test"}]}]]]]}"#);
+        assert_eq!(to_string(&Block::Header(0, attr_base_val(), vec![inline_base_val()])).unwrap(),
+                   r#"{"Header":[0,["test",["test"],[["test","test"]]],[{"Str":"test"}]]}"#);
+        assert_eq!(to_string(&Block::HorizontalRule).unwrap(),
+                   "\"HorizontalRule\"");
+        assert_eq!(to_string(&Block::Table(vec![inline_base_val()], vec![Alignment::AlignLeft],
+                                           vec![0.0], vec![vec![block_base_val()]],
+                                           vec![vec![vec![block_base_val()]]])).unwrap(),
+                   r#"{"Table":[[{"Str":"test"}],[{"AlignLeft":[]}],[0.0],[[{"Plain":[{"Str":"test"}]}]],[[[{"Plain":[{"Str":"test"}]}]]]]}"#);
+        assert_eq!(to_string(&Block::Div(attr_base_val(), vec![block_base_val()])).unwrap(),
+                   r#"{"Div":[["test",["test"],[["test","test"]]],[{"Plain":[{"Str":"test"}]}]]}"#);
+        assert_eq!(to_string(&Block::Null).unwrap(),
+                   "\"Null\"");
     }
 
     #[test]
