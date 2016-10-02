@@ -2,7 +2,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate pandoc_filters;
 use pandoc_filters::json::filter;
-use pandoc_filters::types::{Inline, Block};
+use pandoc_filters::examples::behead;
 
 use std::io::{self, Read};
 
@@ -13,22 +13,3 @@ fn main() {
     println!("{}", new_json);
 }
 
-fn to_upper(inline: Inline) -> Inline {
-    match inline {
-        Inline::Str(s) => Inline::Str(s.to_uppercase()),
-        e => e
-    }
-}
-
-fn behead(header: Block) -> Block {
-    match header {
-        Block::Header(level, attrs, inlines) => {
-            if level >= 2 {
-                Block::Para(vec![Inline::Emph(inlines)])
-            } else {
-                Block::Header(level, attrs, inlines)
-            }
-        },
-        e => e
-    }
-}

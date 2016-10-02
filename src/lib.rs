@@ -7,3 +7,4 @@ extern crate serde_json;
 pub mod types;
 mod walk;
 pub mod json;
+pub mod examples;
