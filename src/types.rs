@@ -125,7 +125,6 @@ serialize_enum!(
 
 type TableCell = Vec<Block>;
 
-// TODO: add tests
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Inline
 serialize_enum!(
     Inline,
@@ -144,8 +143,8 @@ serialize_enum!(
         SmallCaps[v, Vec<Inline>]
     },
     tuples = {
-        Quoted[q = QuoteType, v = Vec<Inline>],
-        Cite[c = Vec<Citation>, v = Vec<Inline>],
+        Quoted[q=QuoteType, v=Vec<Inline>],
+        Cite[c=Vec<Citation>, v=Vec<Inline>],
         Code[a=Attr, s=String],
         Math[t=MathType, s=String],
         RawInline[f=Format, s=String],
@@ -186,7 +185,7 @@ pub struct Citation {
     pub citation_prefix: Vec<Inline>,
     #[serde(rename = "citationSuffix")]
     pub citation_suffix: Vec<Inline>,
-    #[serde(rename = "citationmode")]
+    #[serde(rename = "citationMode")]
     pub citation_mode: CitationMode,
     #[serde(rename = "citationNoteNum")]
     pub citation_note_num: u64,
@@ -236,6 +235,17 @@ mod tests {
         (0, ListNumberStyle::DefaultStyle, ListNumberDelim::DefaultDelim)
     }
 
+    fn citation_base_val() -> Citation {
+        Citation {
+            citation_id: String::from("test"),
+            citation_prefix: vec![inline_base_val()],
+            citation_suffix: vec![inline_base_val()],
+            citation_mode: CitationMode::AuthorInText,
+            citation_note_num: 0,
+            citation_hash: 0
+        }
+    }
+
     #[test]
     fn serialize_meta_value() {
         let mut map = BTreeMap::new();
@@ -277,6 +287,40 @@ mod tests {
             Block::Div(attr_base_val(), vec![block_base_val()]) =>
                 r#"{"Div":[["test",["test"],[["test","test"]]],[{"Plain":[{"Str":"test"}]}]]}"#,
             Block::Null => "\"Null\""
+        );
+    }
+
+    #[test]
+    fn serialize_inline() {
+        test_serialize!(
+            Inline::Space => r#"{"Space":[]}"#,
+            Inline::SoftBreak => r#"{"SoftBreak":[]}"#,
+            Inline::LineBreak => r#"{"LineBreak":[]}"#,
+            inline_base_val() => r#"{"Str":"test"}"#,
+            Inline::Emph(vec![inline_base_val()]) => r#"{"Emph":[{"Str":"test"}]}"#,
+            Inline::Strong(vec![inline_base_val()]) => r#"{"Strong":[{"Str":"test"}]}"#,
+            Inline::Strikeout(vec![inline_base_val()]) => r#"{"Strikeout":[{"Str":"test"}]}"#,
+            Inline::Superscript(vec![inline_base_val()]) => r#"{"Superscript":[{"Str":"test"}]}"#,
+            Inline::Subscript(vec![inline_base_val()]) => r#"{"Subscript":[{"Str":"test"}]}"#,
+            Inline::SmallCaps(vec![inline_base_val()]) => r#"{"SmallCaps":[{"Str":"test"}]}"#,
+            Inline::Quoted(QuoteType::SingleQuote, vec![inline_base_val()]) =>
+                r#"{"Quoted":[{"SingleQuote":[]},[{"Str":"test"}]]}"#,
+            Inline::Cite(vec![citation_base_val()], vec![inline_base_val()]) =>
+                r#"{"Cite":[[{"citationId":"test","citationPrefix":[{"Str":"test"}],"citationSuffix":[{"Str":"test"}],"citationMode":"AuthorInText","citationNoteNum":0,"citationHash":0}],[{"Str":"test"}]]}"#,
+            Inline::Code(attr_base_val(), String::from("test")) =>
+                r#"{"Code":[["test",["test"],[["test","test"]]],"test"]}"#,
+            Inline::Math(MathType::DisplayMath, String::from("test")) =>
+                r#"{"Math":[{"DisplayMath":[]},"test"]}"#,
+            Inline::RawInline(String::from("test"), String::from("test")) =>
+                r#"{"RawInline":["test","test"]}"#,
+            Inline::Link(attr_base_val(), vec![inline_base_val()],
+                         (String::from("test"), String::from("test"))) =>
+                r#"{"Link":[["test",["test"],[["test","test"]]],[{"Str":"test"}],["test","test"]]}"#,
+            Inline::Image(attr_base_val(), vec![inline_base_val()],
+                         (String::from("test"), String::from("test"))) =>
+                r#"{"Image":[["test",["test"],[["test","test"]]],[{"Str":"test"}],["test","test"]]}"#,
+            Inline::Span(attr_base_val(), vec![inline_base_val()]) =>
+                r#"{"Span":[["test",["test"],[["test","test"]]],[{"Str":"test"}]]}"#
         );
     }
 
