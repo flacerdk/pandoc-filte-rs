@@ -325,6 +325,18 @@ mod tests {
     }
 
     #[test]
+    fn serialize_quotetype() {
+        QuoteType::SingleQuote => r#"{"SingleQuote":[]}"#,
+        QuoteType::DoubleQuote => r#"{"DoubleQuote":[]}"#
+    }
+
+    #[test]
+    fn serialize_mathtype() {
+        MathType::DisplayMath => r#"{"DisplayMath":[]}"#,
+        MathType::InlineMath => r#"{"InlineMath":[]}"#
+    }
+
+    #[test]
     fn serialize_citation_mode() {
         test_serialize!(
             CitationMode::AuthorInText => "\"AuthorInText\"",
@@ -334,41 +346,29 @@ mod tests {
     }
 
     #[test]
-    fn serialize_mathtype() {
-        assert_eq!(to_string(&MathType::DisplayMath).unwrap(), r#"{"DisplayMath":[]}"#);
-        assert_eq!(to_string(&MathType::InlineMath).unwrap(), r#"{"InlineMath":[]}"#);
-    }
-
-    #[test]
-    fn serialize_quotetype() {
-        assert_eq!(to_string(&QuoteType::SingleQuote).unwrap(), r#"{"SingleQuote":[]}"#);
-        assert_eq!(to_string(&QuoteType::DoubleQuote).unwrap(), r#"{"DoubleQuote":[]}"#);
-    }
-
-    #[test]
     fn serialize_alignment() {
-        assert_eq!(to_string(&Alignment::AlignLeft).unwrap(), r#"{"AlignLeft":[]}"#);
-        assert_eq!(to_string(&Alignment::AlignRight).unwrap(), r#"{"AlignRight":[]}"#);
-        assert_eq!(to_string(&Alignment::AlignCenter).unwrap(), r#"{"AlignCenter":[]}"#);
-        assert_eq!(to_string(&Alignment::AlignDefault).unwrap(), r#"{"AlignDefault":[]}"#);
+        Alignment::AlignLeft => r#"{"AlignLeft":[]}"#,
+        Alignment::AlignRight => r#"{"AlignRight":[]}"#,
+        Alignment::AlignCenter => r#"{"AlignCenter":[]}"#,
+        Alignment::AlignDefault => r#"{"AlignDefault":[]}"#,
     }
 
     #[test]
     fn serialize_list_number_delim() {
-        assert_eq!(to_string(&ListNumberDelim::DefaultDelim).unwrap(), r#"{"DefaultDelim":[]}"#);
-        assert_eq!(to_string(&ListNumberDelim::Period).unwrap(), r#"{"Period":[]}"#);
-        assert_eq!(to_string(&ListNumberDelim::OneParen).unwrap(), r#"{"OneParen":[]}"#);
-        assert_eq!(to_string(&ListNumberDelim::TwoParens).unwrap(), r#"{"TwoParens":[]}"#);
+        ListNumberDelim::DefaultDelim => r#"{"DefaultDelim":[]}"#,
+        ListNumberDelim::Period => r#"{"Period":[]}"#,
+        ListNumberDelim::OneParen => r#"{"OneParen":[]}"#,
+        ListNumberDelim::TwoParens => r#"{"TwoParens":[]}"#
     }
 
     #[test]
     fn serialize_list_number_style() {
-        assert_eq!(to_string(&ListNumberStyle::DefaultStyle).unwrap(), r#"{"DefaultStyle":[]}"#);
-        assert_eq!(to_string(&ListNumberStyle::Example).unwrap(), r#"{"Example":[]}"#);
-        assert_eq!(to_string(&ListNumberStyle::Decimal).unwrap(), r#"{"Decimal":[]}"#);
-        assert_eq!(to_string(&ListNumberStyle::LowerRoman).unwrap(), r#"{"LowerRoman":[]}"#);
-        assert_eq!(to_string(&ListNumberStyle::UpperRoman).unwrap(), r#"{"UpperRoman":[]}"#);
-        assert_eq!(to_string(&ListNumberStyle::LowerAlpha).unwrap(), r#"{"LowerAlpha":[]}"#);
-        assert_eq!(to_string(&ListNumberStyle::UpperAlpha).unwrap(), r#"{"UpperAlpha":[]}"#);
+        ListNumberStyle::DefaultStyle => r#"{"DefaultStyle":[]}"#,
+        ListNumberStyle::Example => r#"{"Example":[]}"#,
+        ListNumberStyle::Decimal => r#"{"Decimal":[]}"#,
+        ListNumberStyle::LowerRoman => r#"{"LowerRoman":[]}"#,
+        ListNumberStyle::UpperRoman => r#"{"UpperRoman":[]}"#,
+        ListNumberStyle::LowerAlpha => r#"{"LowerAlpha":[]}"#,
+        ListNumberStyle::UpperAlpha => r#"{"UpperAlpha":[]}"#
     }
 }
