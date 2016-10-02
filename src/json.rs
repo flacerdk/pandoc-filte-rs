@@ -100,7 +100,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     #[test]
-    fn test_convert_entry_object() {
+    fn convert_entry_object() {
         let mut map = BTreeMap::new();
         map.insert(String::from("Str"), serde_json::Value::String(String::from("Test")));
         let expected = serde_json::Value::Object(map);
@@ -115,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn test_convert_entry_array() {
+    fn convert_entry_array() {
         let arr = vec![serde_json::Value::String(String::from("Test")),
                            serde_json::Value::String(String::from("string"))];
         let expected = serde_json::Value::Array(arr);
@@ -130,7 +130,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_json() {
+    fn to_json() {
         let json = markdown_to_json(String::from("# Test")).unwrap();
         let pandoc = r#"[{"unMeta":{}},[{"t":"Header","c":[1,["test",[],[]],[{"t":"Str","c":"Test"}]]}]]"#;
         let expected: serde_json::Value = serde_json::from_str(pandoc).unwrap();
