@@ -4,7 +4,6 @@ use serde::ser::{Serialize, Serializer};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Pandoc(pub Meta, pub Vec<Block>);
 
-// TODO: add tests
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Meta {
     #[serde(rename = "unMeta")]
@@ -176,7 +175,6 @@ pub type Format = String;
 pub type Attr = (String, Vec<String>, Vec<(String, String)>);
 pub type Target = (String, String);
 
-// TODO: add tests
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Citation {
     #[serde(rename = "citationId")]
@@ -218,8 +216,14 @@ mod tests {
         Inline::Str(String::from("test"))
     }
 
-    fn meta_base_val() -> MetaValue {
+    fn meta_value_base_val() -> MetaValue {
         MetaValue::MetaString(String::from("test"))
+    }
+
+    fn meta_base_val() -> Meta {
+        let mut map = BTreeMap::new();
+        map.insert(String::from("test"), meta_value_base_val());
+        Meta { un_meta: map }
     }
 
     fn block_base_val() -> Block {
@@ -247,14 +251,29 @@ mod tests {
     }
 
     #[test]
+    fn serialize_pandoc() {
+        test_serialize!(
+            Pandoc(meta_base_val(), vec![block_base_val()]) =>
+                r#"[{"unMeta":{"test":{"MetaString":"test"}}},[{"Plain":[{"Str":"test"}]}]]"#
+        );
+    }
+
+    #[test]
+    fn serialize_meta() {
+        test_serialize!(
+            meta_base_val() => r#"{"unMeta":{"test":{"MetaString":"test"}}}"#
+        );
+    }
+
+    #[test]
     fn serialize_meta_value() {
         let mut map = BTreeMap::new();
-        map.insert(String::from("test"), meta_base_val());
+        map.insert(String::from("test"), meta_value_base_val());
         test_serialize!(
             MetaValue::MetaMap(map) => r#"{"MetaMap":{"test":{"MetaString":"test"}}}"#,
-            MetaValue::MetaList(vec![meta_base_val()]) => r#"{"MetaList":[{"MetaString":"test"}]}"#,
+            MetaValue::MetaList(vec![meta_value_base_val()]) => r#"{"MetaList":[{"MetaString":"test"}]}"#,
             MetaValue::MetaBool(true) => r#"{"MetaBool":true}"#,
-            meta_base_val() => r#"{"MetaString":"test"}"#,
+            meta_value_base_val() => r#"{"MetaString":"test"}"#,
             MetaValue::MetaInlines(vec![inline_base_val()]) => r#"{"MetaInlines":[{"Str":"test"}]}"#,
             MetaValue::MetaBlocks(vec![block_base_val()]) => r#"{"MetaBlocks":[{"Plain":[{"Str":"test"}]}]}"#
         );
@@ -325,15 +344,27 @@ mod tests {
     }
 
     #[test]
+    fn serialize_citation() {
+        test_serialize!(
+            citation_base_val() =>
+                r#"{"citationId":"test","citationPrefix":[{"Str":"test"}],"citationSuffix":[{"Str":"test"}],"citationMode":"AuthorInText","citationNoteNum":0,"citationHash":0}"#
+        );
+    }
+
+    #[test]
     fn serialize_quotetype() {
-        QuoteType::SingleQuote => r#"{"SingleQuote":[]}"#,
-        QuoteType::DoubleQuote => r#"{"DoubleQuote":[]}"#
+        test_serialize!(
+            QuoteType::SingleQuote => r#"{"SingleQuote":[]}"#,
+            QuoteType::DoubleQuote => r#"{"DoubleQuote":[]}"#
+        );
     }
 
     #[test]
     fn serialize_mathtype() {
-        MathType::DisplayMath => r#"{"DisplayMath":[]}"#,
-        MathType::InlineMath => r#"{"InlineMath":[]}"#
+        test_serialize!(
+            MathType::DisplayMath => r#"{"DisplayMath":[]}"#,
+            MathType::InlineMath => r#"{"InlineMath":[]}"#
+        );
     }
 
     #[test]
@@ -347,28 +378,34 @@ mod tests {
 
     #[test]
     fn serialize_alignment() {
-        Alignment::AlignLeft => r#"{"AlignLeft":[]}"#,
-        Alignment::AlignRight => r#"{"AlignRight":[]}"#,
-        Alignment::AlignCenter => r#"{"AlignCenter":[]}"#,
-        Alignment::AlignDefault => r#"{"AlignDefault":[]}"#,
+        test_serialize!(
+            Alignment::AlignLeft => r#"{"AlignLeft":[]}"#,
+            Alignment::AlignRight => r#"{"AlignRight":[]}"#,
+            Alignment::AlignCenter => r#"{"AlignCenter":[]}"#,
+            Alignment::AlignDefault => r#"{"AlignDefault":[]}"#
+        );
     }
 
     #[test]
     fn serialize_list_number_delim() {
-        ListNumberDelim::DefaultDelim => r#"{"DefaultDelim":[]}"#,
-        ListNumberDelim::Period => r#"{"Period":[]}"#,
-        ListNumberDelim::OneParen => r#"{"OneParen":[]}"#,
-        ListNumberDelim::TwoParens => r#"{"TwoParens":[]}"#
+        test_serialize!(
+            ListNumberDelim::DefaultDelim => r#"{"DefaultDelim":[]}"#,
+            ListNumberDelim::Period => r#"{"Period":[]}"#,
+            ListNumberDelim::OneParen => r#"{"OneParen":[]}"#,
+            ListNumberDelim::TwoParens => r#"{"TwoParens":[]}"#
+        );
     }
 
     #[test]
     fn serialize_list_number_style() {
-        ListNumberStyle::DefaultStyle => r#"{"DefaultStyle":[]}"#,
-        ListNumberStyle::Example => r#"{"Example":[]}"#,
-        ListNumberStyle::Decimal => r#"{"Decimal":[]}"#,
-        ListNumberStyle::LowerRoman => r#"{"LowerRoman":[]}"#,
-        ListNumberStyle::UpperRoman => r#"{"UpperRoman":[]}"#,
-        ListNumberStyle::LowerAlpha => r#"{"LowerAlpha":[]}"#,
-        ListNumberStyle::UpperAlpha => r#"{"UpperAlpha":[]}"#
+        test_serialize!(
+            ListNumberStyle::DefaultStyle => r#"{"DefaultStyle":[]}"#,
+            ListNumberStyle::Example => r#"{"Example":[]}"#,
+            ListNumberStyle::Decimal => r#"{"Decimal":[]}"#,
+            ListNumberStyle::LowerRoman => r#"{"LowerRoman":[]}"#,
+            ListNumberStyle::UpperRoman => r#"{"UpperRoman":[]}"#,
+            ListNumberStyle::LowerAlpha => r#"{"LowerAlpha":[]}"#,
+            ListNumberStyle::UpperAlpha => r#"{"UpperAlpha":[]}"#
+        );
     }
 }
