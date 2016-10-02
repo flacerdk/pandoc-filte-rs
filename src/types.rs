@@ -22,7 +22,6 @@ pub enum MetaValue {
 }
 
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Block
-// TODO: add tests
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Block {
     Plain(Vec<Inline>),
@@ -208,6 +207,14 @@ mod tests {
     use types::*;
     use std::collections::BTreeMap;
 
+    macro_rules! test_serialize {
+        ($( $value:expr => $expected:expr ),*) => {
+            $(
+                assert_eq!(to_string(&$value).unwrap(), $expected);
+            )*
+        }
+    }
+
     fn inline_base_val() -> Inline {
         Inline::Str(String::from("test"))
     }
@@ -233,59 +240,53 @@ mod tests {
     fn serialize_meta_value() {
         let mut map = BTreeMap::new();
         map.insert(String::from("test"), meta_base_val());
-        assert_eq!(to_string(&MetaValue::MetaMap(map)).unwrap(),
-                   r#"{"MetaMap":{"test":{"MetaString":"test"}}}"#);
-        assert_eq!(to_string(&MetaValue::MetaList(vec![meta_base_val()])).unwrap(),
-                   r#"{"MetaList":[{"MetaString":"test"}]}"#);
-        assert_eq!(to_string(&MetaValue::MetaBool(true)).unwrap(),
-                   r#"{"MetaBool":true}"#);
-        assert_eq!(to_string(&meta_base_val()).unwrap(),
-                   r#"{"MetaString":"test"}"#);
-        assert_eq!(to_string(&MetaValue::MetaInlines(vec![inline_base_val()])).unwrap(),
-                   r#"{"MetaInlines":[{"Str":"test"}]}"#);
-        assert_eq!(to_string(&MetaValue::MetaBlocks(vec![block_base_val()])).unwrap(),
-                   r#"{"MetaBlocks":[{"Plain":[{"Str":"test"}]}]}"#);
+        test_serialize!(
+            MetaValue::MetaMap(map) => r#"{"MetaMap":{"test":{"MetaString":"test"}}}"#,
+            MetaValue::MetaList(vec![meta_base_val()]) => r#"{"MetaList":[{"MetaString":"test"}]}"#,
+            MetaValue::MetaBool(true) => r#"{"MetaBool":true}"#,
+            meta_base_val() => r#"{"MetaString":"test"}"#,
+            MetaValue::MetaInlines(vec![inline_base_val()]) => r#"{"MetaInlines":[{"Str":"test"}]}"#,
+            MetaValue::MetaBlocks(vec![block_base_val()]) => r#"{"MetaBlocks":[{"Plain":[{"Str":"test"}]}]}"#
+        );
     }
 
     #[test]
     fn serialize_block() {
-        assert_eq!(to_string(&block_base_val()).unwrap(),
-                   r#"{"Plain":[{"Str":"test"}]}"#);
-        assert_eq!(to_string(&Block::Para(vec![inline_base_val()])).unwrap(),
-                   r#"{"Para":[{"Str":"test"}]}"#);
-        assert_eq!(to_string(&Block::CodeBlock(attr_base_val(), String::from("test"))).unwrap(),
-                   r#"{"CodeBlock":[["test",["test"],[["test","test"]]],"test"]}"#);
-        assert_eq!(to_string(&Block::RawBlock(String::from("test"), String::from("test"))).unwrap(),
-                   r#"{"RawBlock":["test","test"]}"#);
-        assert_eq!(to_string(&Block::BlockQuote(vec![block_base_val()])).unwrap(),
-                   r#"{"BlockQuote":[{"Plain":[{"Str":"test"}]}]}"#);
-        assert_eq!(to_string(&Block::OrderedList(list_attributes_base_val(),
-                                                 vec![vec![block_base_val()]])).unwrap(),
-                   r#"{"OrderedList":[[0,{"DefaultStyle":[]},{"DefaultDelim":[]}],[[{"Plain":[{"Str":"test"}]}]]]}"#);
-        assert_eq!(to_string(&Block::BulletList(vec![vec![block_base_val()]])).unwrap(),
-                   r#"{"BulletList":[[{"Plain":[{"Str":"test"}]}]]}"#);
-        assert_eq!(to_string(&Block::DefinitionList(vec![(vec![inline_base_val()],
-                                                          vec![vec![block_base_val()]])])).unwrap(),
-                   r#"{"DefinitionList":[[[{"Str":"test"}],[[{"Plain":[{"Str":"test"}]}]]]]}"#);
-        assert_eq!(to_string(&Block::Header(0, attr_base_val(), vec![inline_base_val()])).unwrap(),
-                   r#"{"Header":[0,["test",["test"],[["test","test"]]],[{"Str":"test"}]]}"#);
-        assert_eq!(to_string(&Block::HorizontalRule).unwrap(),
-                   "\"HorizontalRule\"");
-        assert_eq!(to_string(&Block::Table(vec![inline_base_val()], vec![Alignment::AlignLeft],
-                                           vec![0.0], vec![vec![block_base_val()]],
-                                           vec![vec![vec![block_base_val()]]])).unwrap(),
-                   r#"{"Table":[[{"Str":"test"}],[{"AlignLeft":[]}],[0.0],[[{"Plain":[{"Str":"test"}]}]],[[[{"Plain":[{"Str":"test"}]}]]]]}"#);
-        assert_eq!(to_string(&Block::Div(attr_base_val(), vec![block_base_val()])).unwrap(),
-                   r#"{"Div":[["test",["test"],[["test","test"]]],[{"Plain":[{"Str":"test"}]}]]}"#);
-        assert_eq!(to_string(&Block::Null).unwrap(),
-                   "\"Null\"");
+        test_serialize!(
+            block_base_val() => r#"{"Plain":[{"Str":"test"}]}"#,
+            Block::Para(vec![inline_base_val()]) => r#"{"Para":[{"Str":"test"}]}"#,
+            Block::CodeBlock(attr_base_val(), String::from("test")) => 
+                   r#"{"CodeBlock":[["test",["test"],[["test","test"]]],"test"]}"#,
+            Block::RawBlock(String::from("test"), String::from("test")) =>
+                r#"{"RawBlock":["test","test"]}"#,
+            Block::BlockQuote(vec![block_base_val()]) =>
+                r#"{"BlockQuote":[{"Plain":[{"Str":"test"}]}]}"#,
+            Block::OrderedList(list_attributes_base_val(), vec![vec![block_base_val()]]) =>
+                r#"{"OrderedList":[[0,{"DefaultStyle":[]},{"DefaultDelim":[]}],[[{"Plain":[{"Str":"test"}]}]]]}"#,
+            Block::BulletList(vec![vec![block_base_val()]]) =>
+                r#"{"BulletList":[[{"Plain":[{"Str":"test"}]}]]}"#,
+            Block::DefinitionList(vec![(vec![inline_base_val()], vec![vec![block_base_val()]])]) =>
+                r#"{"DefinitionList":[[[{"Str":"test"}],[[{"Plain":[{"Str":"test"}]}]]]]}"#,
+            Block::Header(0, attr_base_val(), vec![inline_base_val()]) =>
+                r#"{"Header":[0,["test",["test"],[["test","test"]]],[{"Str":"test"}]]}"#,
+            Block::HorizontalRule => "\"HorizontalRule\"",
+            Block::Table(vec![inline_base_val()], vec![Alignment::AlignLeft],
+                         vec![0.0], vec![vec![block_base_val()]],
+                         vec![vec![vec![block_base_val()]]]) =>
+                r#"{"Table":[[{"Str":"test"}],[{"AlignLeft":[]}],[0.0],[[{"Plain":[{"Str":"test"}]}]],[[[{"Plain":[{"Str":"test"}]}]]]]}"#,
+            Block::Div(attr_base_val(), vec![block_base_val()]) =>
+                r#"{"Div":[["test",["test"],[["test","test"]]],[{"Plain":[{"Str":"test"}]}]]}"#,
+            Block::Null => "\"Null\""
+        );
     }
 
     #[test]
     fn serialize_citation_mode() {
-        assert_eq!(to_string(&CitationMode::AuthorInText).unwrap(), "\"AuthorInText\"");
-        assert_eq!(to_string(&CitationMode::SuppressAuthor).unwrap(), "\"SuppressAuthor\"");
-        assert_eq!(to_string(&CitationMode::NormalCitation).unwrap(), "\"NormalCitation\"");
+        test_serialize!(
+            CitationMode::AuthorInText => "\"AuthorInText\"",
+            CitationMode::SuppressAuthor => "\"SuppressAuthor\"",
+            CitationMode::NormalCitation => "\"NormalCitation\""
+        );
     }
 
     #[test]
