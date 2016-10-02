@@ -4,6 +4,7 @@ use serde::ser::{Serialize, Serializer};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Pandoc(pub Meta, pub Vec<Block>);
 
+// TODO: add tests
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Meta {
     #[serde(rename = "unMeta")]
@@ -21,6 +22,7 @@ pub enum MetaValue {
 }
 
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Block
+// TODO: add tests
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Block {
     Plain(Vec<Inline>),
@@ -124,6 +126,7 @@ serialize_enum!(
 
 type TableCell = Vec<Block>;
 
+// TODO: add tests
 // http://hackage.haskell.org/package/pandoc-types-1.16.1.1/docs/Text-Pandoc-Definition.html#t:Inline
 serialize_enum!(
     Inline,
@@ -175,6 +178,7 @@ pub type Format = String;
 pub type Attr = (String, Vec<String>, Vec<(String, String)>);
 pub type Target = (String, String);
 
+// TODO: add tests
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Citation {
     #[serde(rename = "citationId")]
@@ -198,3 +202,90 @@ pub enum CitationMode {
     NormalCitation
 }
 
+#[cfg(test)]
+mod tests {
+    use serde_json::ser::to_string;
+    use types::*;
+    use std::collections::BTreeMap;
+
+    fn inline_base_val() -> Inline {
+        Inline::Str(String::from("test"))
+    }
+
+    fn meta_base_val() -> MetaValue {
+        MetaValue::MetaString(String::from("test"))
+    }
+
+    fn block_base_val() -> Block {
+        Block::Plain(vec![inline_base_val()])
+    }
+
+    #[test]
+    fn serialize_meta_value() {
+        let mut map = BTreeMap::new();
+        map.insert(String::from("test"), meta_base_val());
+        let meta_map = MetaValue::MetaMap(map);
+        assert_eq!(to_string(&meta_map).unwrap(), r#"{"MetaMap":{"test":{"MetaString":"test"}}}"#);
+
+        let meta_list = MetaValue::MetaList(vec![meta_base_val()]);
+        assert_eq!(to_string(&meta_list).unwrap(), r#"{"MetaList":[{"MetaString":"test"}]}"#);
+
+        let meta_bool = MetaValue::MetaBool(true);
+        assert_eq!(to_string(&meta_bool).unwrap(), r#"{"MetaBool":true}"#);
+
+        let meta_string = meta_base_val();
+        assert_eq!(to_string(&meta_string).unwrap(), r#"{"MetaString":"test"}"#);
+
+        let meta_inlines = MetaValue::MetaInlines(vec![inline_base_val()]);
+        assert_eq!(to_string(&meta_inlines).unwrap(), r#"{"MetaInlines":[{"Str":"test"}]}"#);
+
+        let meta_blocks = MetaValue::MetaBlocks(vec![block_base_val()]);
+        assert_eq!(to_string(&meta_blocks).unwrap(), r#"{"MetaBlocks":[{"Plain":[{"Str":"test"}]}]}"#);
+    }
+
+    #[test]
+    fn serialize_citation_mode() {
+        assert_eq!(to_string(&CitationMode::AuthorInText).unwrap(), "\"AuthorInText\"");
+        assert_eq!(to_string(&CitationMode::SuppressAuthor).unwrap(), "\"SuppressAuthor\"");
+        assert_eq!(to_string(&CitationMode::NormalCitation).unwrap(), "\"NormalCitation\"");
+    }
+
+    #[test]
+    fn serialize_mathtype() {
+        assert_eq!(to_string(&MathType::DisplayMath).unwrap(), r#"{"DisplayMath":[]}"#);
+        assert_eq!(to_string(&MathType::InlineMath).unwrap(), r#"{"InlineMath":[]}"#);
+    }
+
+    #[test]
+    fn serialize_quotetype() {
+        assert_eq!(to_string(&QuoteType::SingleQuote).unwrap(), r#"{"SingleQuote":[]}"#);
+        assert_eq!(to_string(&QuoteType::DoubleQuote).unwrap(), r#"{"DoubleQuote":[]}"#);
+    }
+
+    #[test]
+    fn serialize_alignment() {
+        assert_eq!(to_string(&Alignment::AlignLeft).unwrap(), r#"{"AlignLeft":[]}"#);
+        assert_eq!(to_string(&Alignment::AlignRight).unwrap(), r#"{"AlignRight":[]}"#);
+        assert_eq!(to_string(&Alignment::AlignCenter).unwrap(), r#"{"AlignCenter":[]}"#);
+        assert_eq!(to_string(&Alignment::AlignDefault).unwrap(), r#"{"AlignDefault":[]}"#);
+    }
+
+    #[test]
+    fn serialize_list_number_delim() {
+        assert_eq!(to_string(&ListNumberDelim::DefaultDelim).unwrap(), r#"{"DefaultDelim":[]}"#);
+        assert_eq!(to_string(&ListNumberDelim::Period).unwrap(), r#"{"Period":[]}"#);
+        assert_eq!(to_string(&ListNumberDelim::OneParen).unwrap(), r#"{"OneParen":[]}"#);
+        assert_eq!(to_string(&ListNumberDelim::TwoParens).unwrap(), r#"{"TwoParens":[]}"#);
+    }
+
+    #[test]
+    fn serialize_list_number_style() {
+        assert_eq!(to_string(&ListNumberStyle::DefaultStyle).unwrap(), r#"{"DefaultStyle":[]}"#);
+        assert_eq!(to_string(&ListNumberStyle::Example).unwrap(), r#"{"Example":[]}"#);
+        assert_eq!(to_string(&ListNumberStyle::Decimal).unwrap(), r#"{"Decimal":[]}"#);
+        assert_eq!(to_string(&ListNumberStyle::LowerRoman).unwrap(), r#"{"LowerRoman":[]}"#);
+        assert_eq!(to_string(&ListNumberStyle::UpperRoman).unwrap(), r#"{"UpperRoman":[]}"#);
+        assert_eq!(to_string(&ListNumberStyle::LowerAlpha).unwrap(), r#"{"LowerAlpha":[]}"#);
+        assert_eq!(to_string(&ListNumberStyle::UpperAlpha).unwrap(), r#"{"UpperAlpha":[]}"#);
+    }
+}

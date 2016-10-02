@@ -97,7 +97,6 @@ pub fn filter<F, U: Walkable<U>>(json: String, f: &F) -> Result<String, String>
 mod tests {
     use super::*;
     use serde_json;
-    use types::{Block, Inline};
     use std::collections::BTreeMap;
 
     #[test]
@@ -128,17 +127,6 @@ mod tests {
         let converted = from_pandoc(array);
 
         assert_eq!(converted, expected);
-    }
-
-    #[test]
-    fn test_deserialize() {
-        let markdown = String::from("# Test");
-        let pandoc = deserialize(markdown).unwrap();
-        assert!(pandoc.meta.un_meta.is_empty());
-        assert_eq!(pandoc.blocks, vec![
-            Block::Header(1, (String::from("test"), vec![], vec![]),
-                          vec![Inline::Str(String::from("Test"))])
-        ]);
     }
 
     #[test]
